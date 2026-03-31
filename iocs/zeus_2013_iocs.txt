@@ -1,0 +1,85 @@
+# Zeus Banking Trojan (2013) — Indicators of Compromise
+# Source: Static and dynamic analysis of ZeusBankingVersion_26Nov2013
+# Analyst: Alister A. Rodrigues
+# Analysis date: December 2025
+
+## FILE HASHES
+
+MD5    : ea039a854d20d7734c5add48f1a51c34
+SHA1   : 9615dca4c0e46b8a39de5428af7db060399230b2
+SHA256 : 69e966e730557fde8fd84317cdef1ece00a8bb3470c0b58f3231e170168af169
+
+## FILE PROPERTIES (Primary Sample)
+
+Filename    : invoice_2318362983713_823931342io.pdf.exe
+Size        : 252,928 bytes
+Type        : PE32 executable (GUI), Intel 80386
+Compiled    : 2013-11-25 10:32:03 UTC
+Compiler    : MSVC 16.0 (Visual Studio 2010)
+Entropy     : 6.982
+Signed      : No
+
+## DROPPED FILE
+
+Filename    : InstallFlashPlayer.exe
+Path        : C:\Users\<USER>\AppData\Local\Temp\InstallFlashPlayer.exe
+Size        : 89,248 bytes (87.1 KB)
+Attribute   : Hidden
+VersionInfo : Adobe(R) Flash(R) Player Installer/Uninstaller 11.0 r1
+OrigName    : FlashUtil.exe
+Product ver : 11,0,1,152
+
+## NETWORK INDICATORS
+
+# Domains
+corect.com              [static — embedded C2 domain; no DNS observed in this run]
+j.maxmind.com           [observed — geolocation fingerprinting]
+fpdownload.macromedia.com [observed — Flash update host contacted by dropped binary]
+
+# HTTP Requests (observed)
+GET /app/geoip.js HTTP/1.0
+Host: j.maxmind.com
+
+GET /get/flashplayer/update/current/install/install_all_win_cab_64_ax_sgn.z HTTP/1.1
+Host: fpdownload.macromedia.com
+User-Agent: Flash Player Seed/3.0
+Cache-Control: no-cache
+
+# DNS
+Query: j.maxmind.com via 8.8.8.8:53 (UDP)
+Note : Malformed/invalid DNS traffic to 85.114.128.127:53 (FakeNet)
+
+## REGISTRY INDICATORS (observed)
+
+HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\ProxyBypass
+HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\IntranetName
+HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\UNCAsIntranet
+HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\AutoDetect
+
+## PROCESS INDICATORS (observed)
+
+Process  : InstallFlashPlayer.exe
+Parent   : original malware binary
+Children : cmd.exe, conhost.exe
+Memory   : ~3.5 MB working set
+CPU      : ~0% (stealth design)
+Thread   : Dedicated "KILL OWN PROCESS" worker thread for self-deletion
+
+## UAC / DISPLAY STRINGS
+
+# Standard privilege execution
+Application: "Adobe Flash Player"
+Publisher  : "Verified publisher: Adobe Systems Incorporated" [SPOOFED]
+
+# Admin privilege execution (real filename surfaces)
+Application: invoice_2318362983713_823931342io.pdf.exe
+Publisher  : "Unknown"
+
+# Decoy dialog
+"An error has occurred while downloading the installer. Please make sure you are connected to the internet and try again."
+
+## MUTEX / BEHAVIORAL
+
+Self-deletion: Original binary removed from launch location (no Recycle Bin entry)
+Hidden attr:   InstallFlashPlayer.exe created with Hidden attribute
+Multithreaded: Multiple threads including dedicated process-kill thread
